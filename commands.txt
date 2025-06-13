@@ -271,7 +271,7 @@ pick def456 Added new-b line3.
 pick def456 Added new-b line3.
 pick abc123 Added new line5.
 
-git reflog         # Find the commit before the last 2
+git reflog         #Find the commit before the last 2
 git reset --hard HEAD@{2}
 
 cat new.txt   # No line5
