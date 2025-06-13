@@ -1,0 +1,278 @@
+Working with Local Branch
+# 1. See your branches
+Commands: git branch
+
+# 2. Make a new branch, see you're on the new one
+Commands : git branch develop 
+// it will create new branch name develop 
+Commands : git checkout develop 
+// it will make sure you are switched to the branch develop 
+
+# 3. Make a change
+Commands: 
+echo”this is a test file” > new.txt
+git add new.txt
+git commit -m”first commit”
+// It will create a new file name a.txt in the repository branch develop and commit it 
+
+# 4. Go back to master, change new.txt
+
+Commands : 
+git checkout main 
+echo ”this is a change from main” > new.txt
+git add .
+Git commit -am”this is a commit from main” 
+// first we switch to main branch then we change the new.txt file created in develop branch form main branch using commit -am command 
+
+# 5. Note in git log, the adding-b changes are not in master
+
+// git log –oneline will not show new.txt file we added in develop branch as it was not yet merged to the main branch 
+
+# 6. Note we cannot delete adding-b, it is unmerged
+
+commands: 
+git branch -d develop 
+
+results : error: the branch 'develop' is not fully merged.
+If you are sure you want to delete it, run 'git branch -D develop' 
+
+// this shows that the develop branch has some changes that are still not merged with the main branch hence we will just merge them and then delete the branch
+# 7. Merge in adding-b, see the history
+
+Harshul@arcgate000:~/assignment3/assignment3$ git merge develop
+>>> Merge made by the 'ort' strategy.
+
+# 8. Now we can delete adding-b branch
+
+Harshul@arcgate000:~/assignment3/assignment3$ git branch -d develop
+>>>Deleted branch develop (was 440039a).
+
+Branching & Merging & Conflicts
+# 1. Make a new branch, change new.txt and new-b.txt
+Commands : 
+git branch changing
+git checkout changing
+echo "new line in new.txt" >> new.txt
+echo "branch line in new-b.txt" > new-b.txt
+git add .
+git commit -m "changed new.txt and new-b.txt in changing-b"
+//this will result in changing 2 files one new.txt and one new-b.txt in the branch changing 
+
+
+# 2. Go back to master, change new-b.txt as well
+
+commands:
+git checkout main 
+echo "branch line in new-b.txt" > new-b.txt
+git add .
+git commit -m "changed new-b.txt in main"
+
+# 3. Merge in changing-b branch, see the conflict
+
+Commands 
+git merge changing
+
+git show :1:new-b.txt  # original
+git show :2:new-b.txt  # master
+git show :3:new-b.txt  # changing
+
+echo "line1" > new-b.txt
+echo "line2 master and changing-b" >> new-b.txt
+
+
+
+
+
+
+
+
+
+# 4. See only the conflicts
+
+commands :
+git diff 
+
+results :
+
+diff --cc new-b.txt
+index 3c63fc0,b697b89..0000000
+--- a/new-b.txt
++++ b/new-b.txt
+@@@ -1,1 -1,1 +1,2 @@@
+- conflicting line in new-b.txt
+ -branch line in new-b.txt
+++line1
+++line2 master and changing 
+
+
+# 5. Examine each version of new-b.txt
+$ git show :1:new-b.txt # original version
+fatal: path 'new-b.txt' is in the index, but not at stage 1
+
+$ git show :2:new-b.txt # master's version
+conflicting line in new-b.txt
+
+$ git show :3:new-b.txt # changing-b's version
+branch line in new-b.txt
+
+# 6. Resolve the conflicts, see what we changed
+
+git add new-b.txt
+git commit
+
+result :
+[main cecb666] Merge branch 'changing'
+$ echo "line1" > new-b.txt
+$ echo "line2 master and changing-b" >> new-b.txt
+$ git diff
+
+# 7. Commit, use the default commit message
+
+$ git add new-b.txt
+$ git commit	
+$ git branch -d changing-b
+
+ Changing History with Amend
+Changing History with Amend
+
+code>
+# 1. Add line4 with a typo, commit
+
+Commands:
+git init 
+echo "line4 with tyop" >> new.txt
+git add new.txt
+git commit -m "Added line4 with typo"
+
+# 2. Note our history
+
+Commands:
+git log
+
+# 3. Fix our typo, amend the commit
+
+commands 
+# Fix the typo
+echo “ this is a fixed line 4”  > new.txt
+git add new.txt
+git commit --amend   
+
+
+# 4. Note history, there is one, different "line4" commit
+# this creates a new commit and deletes the older new.txt and makes a new one with fixed text 
+
+Command
+git log 
+
+# commit sha = hash(timestamp, author, message, repo contents)
+# amending always changing the last commit's sha
+# 5. Change new, new-b in separate commits
+
+commands
+echo "line5" >> new.txt
+git add new.txt
+git commit -m "Added new line5."
+
+echo "line3" >> new-b.txt
+git add new-b.txt
+git commit -m "Added new-b line3."
+# this makes 2 new commits adding 2 files name line 5 and line 3 but in the order you have entered 
+
+# 6. Rebase to re-order the commits
+
+You want to change the order of those last 2 commits:
+
+
+git rebase -i HEAD~2
+# this gives the user to change the order of the commits 
+In the interactive editor can change the order of commits 
+
+pick sha-a Added new line5.
+pick sha-b Added new-b line3.
+
+# 7. Note history
+commands
+git log 
+
+Harshul@arcgate000:~/amend$ git rebase -i HEAD~2
+Successfully rebased and updated refs/heads/master.
+Harshul@arcgate000:~/amend$ git log
+commit 39424b876ef77e66995fc0059dc0e3617fabb5c2 (HEAD -> master)
+Author: arcgate-harshul <harshul.nihalani@arcgate.com>
+Date:   Fri Jun 13 11:10:16 2025 +0530
+
+    Added new line5.
+
+commit f75bf20e9cb871f8cdc8c80d1b99b0a5a2a6132d
+Author: arcgate-harshul <harshul.nihalani@arcgate.com>
+Date:   Fri Jun 13 11:10:23 2025 +0530
+
+    Added new-b line3.
+
+commit 165df1cfaa0429f351c6350d3961ada41b547bc0
+Author: arcgate-harshul <harshul.nihalani@arcgate.com>
+Date:   Fri Jun 13 11:09:30 2025 +0530
+
+    fixed typo
+
+commit 9b31eb695a18f48a734eed389387164ce53e3d31
+Author: arcgate-harshul <harshul.nihalani@arcgate.com>
+Date:   Fri Jun 13 11:07:07 2025 +0530
+
+//you will see the coimmits have been correctly ordered 
+
+
+# 8. We screwed up, pretend line3/line5 never happened
+#lets say we have done some mistake and we want to undo them so for that we will hard reset and it will bring the head to the commit we will say 
+
+# to view the commit we will just run command 
+Harshul@arcgate000:~/amend$ git reflog
+39424b8 (HEAD -> master) HEAD@{0}: rebase (finish): returning to refs/heads/master
+39424b8 (HEAD -> master) HEAD@{1}: rebase (pick): Added new line5.
+f75bf20 HEAD@{2}: rebase (pick): Added new-b line3.
+165df1c HEAD@{3}: rebase (start): checkout HEAD~2
+0eeba62 HEAD@{4}: commit: Added new-b line3.
+544f947 HEAD@{5}: commit: Added new line5.
+165df1c HEAD@{6}: commit: fixed typo
+
+#And from the reflogs we can select the head count 
+$ git reset --hard HEAD@{7}
+
+# And you will see there is no line 5 and line 3 
+$ cat new.txt   # no line5
+$ cat new-b.txt # new line3
+
+
+
+
+echo "line4 with tyop" >> new.txt
+git add new.txt
+git commit -m "Added line4 with typo"
+
+# Fix the typo
+sed -i 's/tyop/typo/' new.txt
+git add new.txt
+git commit --amend   # Rewrites the last commit
+
+# Add two commits
+echo "line5" >> new.txt
+git add new.txt
+git commit -m "Added new line5."
+
+echo "line3" >> new-b.txt
+git add new-b.txt
+git commit -m "Added new-b line3."
+
+git rebase -i HEAD~2
+
+pick abc123 Added new line5.
+pick def456 Added new-b line3.
+
+pick def456 Added new-b line3.
+pick abc123 Added new line5.
+
+git reflog         #Find the commit before the last 2
+git reset --hard HEAD@{2}
+
+cat new.txt   # No line5
+cat new-b.txt # No line3
